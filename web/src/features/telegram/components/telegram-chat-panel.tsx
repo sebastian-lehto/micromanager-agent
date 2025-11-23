@@ -24,8 +24,6 @@ import { useRealtimeAgent } from "@/features/chat/hooks/use-realtime-agent";
 import type { ChatMessage } from "@/features/chat/types";
 import { TelegramWorkPlanPanel } from "./telegram-workplan";
 
-const DEFAULT_CONFIG_ITEMS = [] as const;
-
 const DEFAULT_TICKER_CONTENT = {
   user: "",
   assistant: "",
@@ -88,6 +86,7 @@ export function TelegramChatPanel({
     (typeof toolCallHistory)[0] | null
   >(null);
   const [isToolModalOpen, setIsToolModalOpen] = useState(false);
+  const [showWorkPlan, setShowWorkPlan] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -349,7 +348,7 @@ export function TelegramChatPanel({
       userId: userId,
       source: "telegram-user",
     };
-
+    setShowWorkPlan(false)
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
@@ -371,6 +370,7 @@ export function TelegramChatPanel({
       });
 
       if (!response.ok) {
+        console.log(response)
         throw new Error("Failed to send message");
       }
 
@@ -568,27 +568,42 @@ export function TelegramChatPanel({
         </div>
       </div>
 
-      <div className="flex-1 ">
-        <div className="flex flex-col gap-2 pb-4">
-          <StatusTickerSection
-            userText={lastUserMessage ?? DEFAULT_TICKER_CONTENT.user}
-            assistantText={
-              isLoading
-                ? ""
-                : lastAssistantMessage ?? DEFAULT_TICKER_CONTENT.assistant
-            }
-            isWorkflowActive={isLoading}
-            hasError={hasLastMessageError}
-            onRetry={retryLastMessage}
-            toolCallHistory={toolCallHistory}
-            onToolClick={(tool) => {
-              setSelectedTool(tool);
-              setIsToolModalOpen(true);
-            }}
-          />
-          <DefaultConfigSquare />
+      <div className="flex-1 pl-6 pr-6">
+        <div className="pb-8">
+          <div className='flex border rounded-lg overflow-hidden'>
+            <Button
+              onClick={(e) => setShowWorkPlan(false)}
+              variant={!showWorkPlan ? "soft" : "ghost"}
+              className="w-full rounded-none"
+            >Chat log</Button>
+            <Button
+              onClick={(e) => setShowWorkPlan(true)}
+              variant={showWorkPlan ? "soft" : "ghost"}
+              className="w-full rounded-none"
+            >Workplan</Button>
+          </div>
         </div>
+        {showWorkPlan 
+          ? <TelegramWorkPlanPanel />
+          : <StatusTickerSection
+              userText={lastUserMessage ?? DEFAULT_TICKER_CONTENT.user}
+              assistantText={
+                isLoading
+                  ? ""
+                  : lastAssistantMessage ?? DEFAULT_TICKER_CONTENT.assistant
+              }
+              isWorkflowActive={isLoading}
+              hasError={hasLastMessageError}
+              onRetry={retryLastMessage}
+              toolCallHistory={toolCallHistory}
+              onToolClick={(tool) => {
+                setSelectedTool(tool);
+                setIsToolModalOpen(true);
+              }}
+            />
+        }
       </div>
+      
 
       {/* Tool Call Details Modal */}
       <Dialog open={isToolModalOpen} onOpenChange={setIsToolModalOpen}>
@@ -705,25 +720,6 @@ export function TelegramChatPanel({
   );
 }
 
-function DefaultConfigSquare() {
-  return (
-    <div className="aspect-square w-full bg-muted/10 p-4">
-      <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          {DEFAULT_CONFIG_ITEMS.map((item) => (
-            <span
-              key={item}
-              className="rounded-full border border-border/60 bg-background/80 px-3 py-1 text-xs text-muted-foreground shadow-sm"
-            >
-              {item}
-            </span>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 interface StatusTickerSectionProps {
   userText: string;
   assistantText: string;
@@ -813,7 +809,6 @@ function StatusTickerSection({
           />
         </div>
       </div>
-      <TelegramWorkPlanPanel />
     </div>
   );
 }

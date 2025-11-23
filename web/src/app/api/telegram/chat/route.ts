@@ -19,8 +19,12 @@ export async function POST(req: NextRequest) {
     let isValid = false;
     try {
       isValid = await verifyTelegramServerToken(token);
+      if (!isValid) {
+        throw new Error('Invalid server token')
+      }
     } catch {
       // Server token verification failed, try client token
+      
       try {
         await jwtVerify(token, env.JWT_SECRET);
         isValid = true;

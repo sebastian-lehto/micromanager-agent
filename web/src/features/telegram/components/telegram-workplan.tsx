@@ -108,17 +108,18 @@ function WorkPlanTabs({
   }
   return(
     <ScrollArea>
-      <div className="flex w-max border border-border/60 bg-background/60 whitespace-nowrap">
-        {workplans.map(item => 
-          <WorkPlanTab
-            key={item.event.id}
-            item={item}
-            isActive={item.event.id === selectedId}
-            onClick={() => setSelectedId(item.event.id)}
-          />
-        )}
+      <div className="border rounded-2xl border-border/60 bg-background/60 whitespace-nowrap overflow-hidden">
+        <div className="flex flex-nowrap w-fit">
+          {workplans.map(item => 
+            <WorkPlanTab
+              key={item.event.id}
+              item={item}
+              isActive={item.event.id === selectedId}
+              onClick={() => setSelectedId(item.event.id)}
+            />
+          )}
+        </div>
       </div>
-      
     </ScrollArea>
   )
 };
@@ -434,13 +435,14 @@ export function TelegramWorkPlanPanel() {
           </div>
         )}
       </CardHeader>
-      <WorkPlanTabs
+      
+      <CardContent className="grid gap-6">
+        <WorkPlanTabs
           workplans={workplans}
           loadingList={loadingList}
           selectedId={selectedId}
           setSelectedId={setSelectedId}
         />
-      <CardContent className="grid gap-6">
         <WorkPlanRoleSelector 
           selectedRoleDraft={selectedRoleDraft}
           handleRoleChange={handleRoleChange}
